@@ -1,0 +1,133 @@
+# Descrierea problemei
+
+## Scop
+
+Acest proiect implementează pe FPGA un procesor **MIPS32 single-cycle** care execută un program simplu stocat în memoria de instrucțiuni și procesează două valori din memoria de date.
+
+Programul citește două numere din memorie, le prelucrează într-o buclă și salvează rezultatele intermediare și finale tot în memorie.
+
+---
+
+## Problema rezolvată
+
+Se citesc două numere din memorie, aflate la adresele:
+
+- `mem[0]`
+- `mem[4]`
+
+Programul rulează într-o buclă care se execută de **două ori**, câte o dată pentru fiecare valoare.
+
+Pentru fiecare număr se face următoarea prelucrare:
+
+1. Se determină cel mai apropiat multiplu de 4 mai mic sau egal cu numărul.
+2. Se calculează corecția:
+
+   `corectie = numar - multiplu_de_4`
+3. Se adaugă un offset fix cu valoarea `10`:
+
+   `corectie_finala = corectie + 10`
+4. Se salvează în memorie:
+   - corecția finală
+   - rezultatul final obținut prin adunarea corecției finale cu multiplul de 4
+
+La final, procesorul intră într-o **buclă infinită**, pentru a opri avansarea programului.
+
+---
+
+## Ideea de calcul
+
+Pentru fiecare valoare citită:
+
+- se aplică o mască binară `0xFFFFFFFC`
+- această mască șterge ultimii 2 biți ai numărului
+- astfel se obține cel mai apropiat multiplu de 4 mai mic sau egal
+
+Apoi:
+
+- se calculează diferența dintre numărul inițial și acel multiplu
+- se adaugă valoarea fixă `10`
+- se memorează atât corecția, cât și valoarea finală
+
+---
+
+## Programul MIPS folosit
+
+```asm
+00: ADDI $8, $0, 0         # offset = 0
+01: ADDI $16, $0, 4        # constanta 4 (pas)
+02: ADDI $10, $0, -4       # 0xFFFFFFFC
+03: LW   $9, 0($8)         # citeste valoarea curenta
+04: AND  $11, $9, $10      # multiplu de 4 inferior
+05: SUB  $12, $9, $11      # corectie = numar - multiplu
+06: ADDI $13, $0, 10       # offset fix 10
+07: ADD  $14, $12, $13     # corectie finala
+08: SW   $14, 8($8)        # salveaza corectia
+09: ADD  $15, $14, $11     # valoarea finala
+10: SW   $15, 12($8)       # salveaza rezultatul final
+11: ADD  $8, $8, $16       # trece la urmatorul element
+12: SLT  $17, $8, $16      # verifica daca s-au procesat ambele valori
+13: BEQ  $17, $0, 15       # daca da, sari la final
+14: J    3                 # altfel repeta bucla
+15: J    15                # bucla infinita
+```
+
+---
+
+## Rolul registrelor principale
+
+- `$8` - offset-ul curent in memoria de date
+- `$9` - valoarea citita din memorie
+- `$10` - masca `0xFFFFFFFC`
+- `$11` - multiplul de 4 mai mic sau egal
+- `$12` - corectia
+- `$13` - constanta `10`
+- `$14` - corectia finala
+- `$15` - rezultatul final
+- `$16` - pasul de incrementare (`4`)
+- `$17` - registru folosit pentru controlul buclei
+
+---
+
+## Organizarea datelor in memorie
+
+Pentru fiecare iteratie:
+
+- se citeste valoarea de la `mem[offset]`
+- se scrie corectia la `mem[offset + 8]`
+- se scrie rezultatul final la `mem[offset + 12]`
+
+Astfel:
+
+### Iteratia 1
+- citire din `mem[0]`
+- scriere corectie in `mem[8]`
+- scriere rezultat final in `mem[12]`
+
+### Iteratia 2
+- citire din `mem[4]`
+- scriere corectie in `mem[12]`
+- scriere rezultat final in `mem[16]`
+
+---
+
+## Comportament pe FPGA
+
+Proiectul este gandit pentru rulare pe placa FPGA si permite urmarirea executiei prin:
+
+- **SSD (7-segment display)** pentru afisarea semnalelor interne
+- **LED-uri** pentru semnalele de control
+- **switch-uri** pentru selectarea valorii afisate
+- **buton cu MPG** pentru avansarea controlata a executiei
+
+---
+
+## Observatie
+
+Aceasta versiune reprezinta implementarea **single-cycle** a procesorului.
+
+Ulterior, proiectul poate fi extins cu o versiune **pipeline**, pentru a compara:
+
+- structura interna
+- executia instructiunilor
+- performanta
+- diferentele dintre cele doua arhitecturi
