@@ -1,39 +1,54 @@
-# MIPS32 FPGA Processor - Single-Cycle & Pipeline
+# Procesor MIPS32 pe FPGA – Single-Cycle și Pipeline
 
-This repository contains two FPGA implementations of a **MIPS32 processor** written in **VHDL**:
+Acest repository conține două implementări ale unui **procesor MIPS32 scris în VHDL**:
 
-- **Single-Cycle MIPS**
-- **Pipelined MIPS**
+- **MIPS Single-Cycle**
+- **MIPS Pipeline**
 
-Both versions are designed for educational use and hardware demonstration on FPGA, with support for step-by-step execution, signal inspection, and debugging through **SSD**, **LEDs**, **switches**, and control buttons.
+Proiectul este realizat pentru rulare pe **FPGA** și permite observarea funcționării interne a procesorului folosind **SSD (7-segment display), LED-uri, switch-uri și butoane**.
 
----
+Scopul proiectului este de a demonstra **arhitectura unui procesor MIPS** și de a compara două implementări clasice:
 
-## Project Overview
+- execuție **single-cycle**
+- execuție **pipeline**
 
-The project was built to compare two classic processor architectures:
-
-- a **single-cycle design**, where each instruction is completed in one clock cycle
-- a **pipeline design**, where instruction execution is split into stages and multiple instructions can overlap in execution
-
-The goal is to show both the **functional behavior** of a MIPS32 processor and the **architectural differences** between the two implementations.
 
 ---
 
-## Problem Solved by the Program
+# Problema rezolvată
 
-Both processors execute a MIPS program that processes two numbers stored in memory.
+Procesorul execută un program MIPS care procesează **două valori din memorie**.
 
-For each value:
+Valorile sunt citite din:
 
-1. the closest multiple of 4 less than or equal to the number is computed
-2. the correction is determined as the difference between the number and that multiple
-3. a fixed offset of **10** is added
-4. the correction and final result are written back to memory
+- `mem[0]`
+- `mem[4]`
 
-At the end, the processor enters an infinite loop.
+Pentru fiecare valoare se execută următorii pași:
 
-### MIPS program
+1. Se determină **cel mai apropiat multiplu de 4 mai mic sau egal** cu numărul.
+2. Se calculează **corecția**:
+
+```
+corectie = numar - multiplu_de_4
+```
+
+3. Se adaugă un **offset fix de 10**:
+
+```
+corectie_finala = corectie + 10
+```
+
+4. Se scriu rezultatele în memorie:
+   - corecția finală
+   - rezultatul final
+
+La final programul intră într-o **buclă infinită**, oprind avansarea execuției.
+
+
+---
+
+# Programul MIPS executat
 
 ```asm
 00: ADDI $8, $0, 0
@@ -54,102 +69,118 @@ At the end, the processor enters an infinite loop.
 15: J    15
 ```
 
+
 ---
 
-## Architectures Included
+# Arhitecturi implementate
 
-### 1. Single-Cycle MIPS
-Main modules:
-- `IFetch`
-- `ID`
-- `EX`
-- `MEM`
-- `UC`
-- `test_env`
+## 1. MIPS Single-Cycle
 
-Characteristics:
-- simple control flow
-- easier to understand and debug
-- one instruction completes in one full cycle
-- longer clock period because all stages are traversed in the same cycle
+În această versiune **fiecare instrucțiune este executată într-un singur ciclu de ceas**.
 
-### 2. Pipeline MIPS
-Main idea:
-- instruction execution is split into stages
-- instructions advance in parallel through the pipeline
-- improves throughput compared to the single-cycle version
+Etape principale:
 
-Typical stages:
+- IF – Instruction Fetch
+- ID – Instruction Decode
+- EX – Execute
+- MEM – Memory Access
+- WB – Write Back
+
+Caracteristici:
+
+- design simplu
+- ușor de înțeles și de debug
+- toate etapele se execută într-un singur ciclu
+- perioada de ceas este mai mare
+
+
+---
+
+## 2. MIPS Pipeline
+
+În această versiune execuția este **împărțită în etape**, iar mai multe instrucțiuni pot fi executate **în paralel**.
+
+Etapele pipeline:
+
 - IF
 - ID
 - EX
 - MEM
 - WB
 
-Characteristics:
-- better performance
-- more efficient instruction flow
-- more complex control and datapath organization
-- useful for understanding pipeline registers and execution overlap
+Caracteristici:
+
+- performanță mai mare
+- execuție paralelă a instrucțiunilor
+- structură hardware mai complexă
+- necesită registre de pipeline
+
 
 ---
 
-## Comparison
+# Comparație
 
-| Feature | Single-Cycle | Pipeline |
+| Caracteristică | Single-Cycle | Pipeline |
 |---|---|---|
-| Instruction execution | One full cycle per instruction | Multiple overlapped stages |
-| Complexity | Lower | Higher |
-| Clock period | Longer | Shorter |
-| Throughput | Lower | Higher |
-| Debugging | Easier | More complex |
-| Educational value | Great for basics | Great for advanced architecture concepts |
+| Execuție instrucțiuni | 1 ciclu / instrucțiune | instrucțiuni suprapuse |
+| Complexitate | mică | mai mare |
+| Perioadă de ceas | mare | mai mică |
+| Performanță | mai mică | mai mare |
+| Ușurință debugging | ridicată | mai dificilă |
+
 
 ---
 
-## FPGA Interaction
+# Interacțiunea cu FPGA
 
-The designs are intended for FPGA demonstration and debugging.
+Proiectul permite observarea execuției procesorului în timp real:
 
-Available hardware interaction:
-- **SSD** for displaying internal values
-- **LEDs** for control signals
-- **Switches** for selecting displayed signals
-- **Button + MPG** for controlled stepping
+**SSD (7-segment display)**  
+afișează diferite semnale interne
 
-This makes it possible to observe how instructions move through the processor and how internal signals change during execution.
+**Switch-uri**  
+selectează valoarea afișată
+
+**LED-uri**  
+arată semnalele de control ale procesorului
+
+**Buton + MPG**  
+permite avansarea execuției pas cu pas
+
 
 ---
 
-## Repository Structure
+# Structura repository
 
-```text
-docs/            project notes, screenshots, explanations
-assembly/        MIPS assembly program
-src/             VHDL source files
-constraints/     FPGA constraints file
-diagrams/        architecture and pipeline diagrams
+```
+docs/            documentație și explicații
+assembly/        programul MIPS
+src/             implementarea VHDL a procesorului
+constraints/     maparea pinilor FPGA
+diagrams/        diagrame arhitecturale
 ```
 
----
-
-## Technologies Used
-
-- **VHDL**
-- **Vivado**
-- **FPGA board constraints**
-- **MIPS32 architecture**
-- **7-segment display / LED debug interface**
 
 ---
 
-## Why this project matters
+# Tehnologii utilizate
 
-This project highlights:
-- digital design skills
-- computer architecture fundamentals
-- FPGA implementation experience
-- datapath and control unit design
-- architectural comparison between single-cycle and pipelined processors
+- VHDL
+- Vivado
+- FPGA (Nexys / similar)
+- arhitectura MIPS32
+- SSD / LED debugging
 
-It is a strong academic and portfolio project for embedded systems, digital design, and hardware-oriented roles.
+
+---
+
+# Scop educațional
+
+Acest proiect demonstrează:
+
+- proiectarea unui procesor
+- implementarea datapath + unitate de control
+- diferențele dintre arhitectura **single-cycle** și **pipeline**
+- implementare hardware pe FPGA
+
+Este un proiect potrivit pentru **portofoliu în domeniul embedded systems, digital design și computer architecture**.
